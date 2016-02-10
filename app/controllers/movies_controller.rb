@@ -14,14 +14,16 @@ class MoviesController < ApplicationController
     @title_class, @release_date_class = ""
     column = params[:sort]
     @all_ratings = Movie.all_ratings;
-    @selected_ratings = params[:ratings]
     
     if params[:ratings].present?
-      @selected_ratings = params[:ratings].keys
+      @selected_ratings = params[:ratings]
     else
-      @selected_ratings = @all_ratings
+      @selected_ratings = Hash.new(false)
+      @all_ratings.each do |rating|
+        @selected_ratings[rating] = true
+      end
     end
-    
+
     case column
     when "title"
       @title_class = "hilite"
@@ -29,8 +31,7 @@ class MoviesController < ApplicationController
       @release_date_class = "hilite"
     end
     
-    @movies = Movie.order(column)
-    @movies = @movies.where(:rating => @selected_ratings) if @selected_ratings.present?
+    @movies = Movie.where(:rating => @selected_ratings.keys).order(column)
   end
 
   def new
