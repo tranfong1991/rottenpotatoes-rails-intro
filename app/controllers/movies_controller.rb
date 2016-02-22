@@ -14,23 +14,40 @@ class MoviesController < ApplicationController
     @title_class, @release_date_class = ""
     @all_ratings = Movie.all_ratings;
     
-    if params[:ratings].present?
-      @selected_ratings = params[:ratings]
-    else
-      @selected_ratings = Hash.new(false)
+     if session[:ratings].nil?
+      session[:ratings] = Hash.new
       @all_ratings.each do |rating|
-        @selected_ratings[rating] = true
+        session[:ratings][rating] = true
       end
     end
+    
+    if params[:sort].nil? and params[:ratings].nil?
+      flash.keep
+      redirect_to :action => 'index', :sort => session[:sort], :ratings => session[:ratings] and return
+    end
+    
+    if !params[:sort].nil? and params[:sort] != session[:sort] 
+      session[:sort] = params[:sort]
+    end
+    
+    if !params[:ratings].nil? and params[:ratings] != session[:ratings]
+      session[:ratings] = params[:ratings]
+    end
 
-    case params[:sort]
+    sort = session[:sort]
+    @selected_ratings = session[:ratings]
+    
+    puts "@SELECTED_RATINGS"
+    puts @selected_ratings
+
+    case sort
     when "title"
       @title_class = "hilite"
     when "release_date"
       @release_date_class = "hilite"
     end
     
-    @movies = Movie.where(:rating => @selected_ratings.keys).order(params[:sort])
+    @movies = Movie.where(:rating => @selected_ratings.keys).order(sort)
   end
 
   def new
